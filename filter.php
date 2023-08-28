@@ -34,10 +34,23 @@ use filter_automultilang\writetranslationtodb;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class filter_automultilang extends moodle_text_filter {
+     
+    /**
+     * Calculate contenthash of a given content string
+     *
+     * @param string|null $content
+     * @return string
+     */
+    public static function get_contenthash(?string $content = null): string {
+        return sha1($content ?? '');
+    }
     function filter($text, array $options = array()) {
         global $CFG, $DB;
 
         if (empty($text) or is_numeric($text)) {
+            return $text;
+        }
+        if (!class_exists('\file_storage')) {
             return $text;
         }
         $result = $text . "automultilangfilter";
