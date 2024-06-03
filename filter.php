@@ -44,6 +44,43 @@ class filter_automultilang extends moodle_text_filter {
     public static function get_contenthash(?string $content = null): string {
         return sha1($content ?? '');
     }
+
+    public static function replace_images_with_placeholder($text) {
+        // Define a pattern to match <img src="data:image/..."> tags with base64 images
+        $pattern = '/<img\s+[^>]*>/i';
+        
+        // Use preg_match_all to find all matches and their base64 content
+        preg_match_all($pattern, $text, $matches);
+        
+        // Create an array to store the base64 content
+        $base64_images = [];
+        
+        // Loop through the matches and replace them with placeholders
+        foreach ($matches[0] as $index => $img_tag) {
+            // Generate a unique placeholder
+            $placeholder = '{{ANY_IMAGE_' . $index . '}}';
+            
+            // Store the base64 content in the array
+            $base64_images[$placeholder] = $img_tag;
+            
+            // Replace the img tag with the placeholder in the text
+            $text = str_replace($img_tag, $placeholder, $text);
+        }
+        
+        // Return an array containing the modified text and the array of base64 images
+        return [$text, $base64_images];
+    }
+
+    public static function restore_images_from_placeholder($text, $base64_images) {
+        // Loop through the base64 images array and replace placeholders with the original base64 images
+        foreach ($base64_images as $placeholder => $img_tag) {
+            $text = str_replace($placeholder, $img_tag, $text);
+        }
+        
+        return $text;
+    }
+    
+    
     function filter($text, array $options = array()) {
         global $CFG, $DB;
 
@@ -55,11 +92,11 @@ class filter_automultilang extends moodle_text_filter {
         }
         $result = $text . "automultilangfilter";
         $lang = current_language();
-        echo "current_language" . $lang . " ";
+        //echo "current_language" . $lang . " ";
         if($lang == "de" || $lang == "DE") {
-            return $result;
+            return $text;
         }
-        $texthash = \file_storage::hash_from_string($text);
+        $texthash = self::get_contenthash($text);
         //debugecho " - texthash " . $texthash;
                 
    
@@ -69,24 +106,39 @@ class filter_automultilang extends moodle_text_filter {
         $filterRecord = $DB->get_record_sql($sql, [$texthash, $lang]);
 
         if(!$filterRecord) {
-            echo " - no record found - try to translate onthefly";
-            $translation = deepltranslate::transWithDeeplXML($text, $lang);
-            writeTranslationToDB::writeTranslationToDB ($lang, $translation, $texthash);
-            $sql = "SELECT transcontent FROM {filter_automultilang} WHERE texthash = ? AND lang = ?";
-            $filterRecord = $DB->get_record_sql($sql, [$texthash, $lang]);
-            if($filterRecord->transcontent) {
-                $newRecord = TRUE;
+            // clean up base64 images - will throw 413 Error 
+            // Replace base64 images with placeholders
+            list($modified_text, $base64_images) = self::replace_images_with_placeholder($text);
+            $text = $modified_text;
+            //tinjohnartprep  echo " automultilang- no record found - try to translate onthefly:-".$text."-";
+            $translationinfo = deepltranslate::transWithDeeplXML($text, $lang);
+            if($translationinfo->translationdone) {
+            // Typo aber WANN SOLL DAS PASSIERT SEIN????
+            // if($transstringinfo->translationdone) {
+                $translation = $translationinfo->transstring;
+                // Restore the base64 images from placeholders
+                $restored_text = self::restore_images_from_placeholder($translation, $base64_images);
+
+                writeTranslationToDB::writeTranslationToDB ($lang, $restored_text, $texthash);
+                $sql = "SELECT transcontent FROM {filter_automultilang} WHERE texthash = ? AND lang = ?";
+                $filterRecord = $DB->get_record_sql($sql, [$texthash, $lang]);
+                if($filterRecord->transcontent) {
+                    $newRecord = TRUE;
+                }    
+            } else {
+                // Print the script to send the message to the browser console
+                echo '<script>console.error("filter_automultitrans: NO translation returned by DeepL - Not written to db");</script>';
             }
         }
         if ($filterRecord || $newRecord) {
             //debug
-            echo "- load transversion ";
+            //echo "- load transversion ";
             $translation = $filterRecord->transcontent;
         } else {
-            echo " no translation available";
+            //echo " no translation available";
         }
         if (is_null($translation)) {
-            return $result; 
+            return $text; 
         } else {
             //writeTranslationToDB ($lang, $translation, $hash)
             return $translation;

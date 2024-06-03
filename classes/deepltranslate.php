@@ -33,7 +33,7 @@ class deepltranslate {
 
         // Ensure the configurations for this site are set
         $settings = get_config('filter_automultilang');
-        var_dump($settings);
+        // tinjohnartprep var_dump($settings);
         
             // Check if the API key setting exists - not working
             //$apiKey = get_config('filter_automultilang','deeplapikey');
@@ -49,9 +49,16 @@ class deepltranslate {
     }
 
     // USED (debugoff) translation with Deepl of flatten lang text array as json string
+    // transWithDeeplXML ist der falsche Name sollte transWithDeeplHTML sein
     public static function transWithDeeplXML ($string, $trglang) {
         // https://www.deepl.com/docs-api/translate-text/
-        echo "<h1> -- translate with Deepl -- </h1>"; 
+        $transstringinfo = new \stdClass();
+        $transstringinfo->string = $string;
+        $transstringinfo->translationdone = false;
+        $transstringinfo->transstring = "";
+        
+
+        // tinjohnartprep echo "translation by Deepl.com "; 
         // Replace [yourAuthKey] with your actual DeepL API authentication key
         $authKey = self::getAPIkey();
         //debug echo "<h1> KEY <h1>" . $authKey;
@@ -59,7 +66,7 @@ class deepltranslate {
         //$authKey = 'for-debugging-off';
         if($authKey == 'for-debugging-off' || $authKey == 'not set yet') {
             echo "<h1 style='color: red;'> DeepL API key is: " . $authKey . "</h1>";
-            return $string;
+            return $transstringinfo;
         }
         $apiUrl = 'https://api-free.deepl.com/v2/translate';
 
@@ -71,7 +78,26 @@ class deepltranslate {
         );
 
         // Convert data to JSON format
-        $dataJson = json_encode($data);
+        try {
+            $dataJson = json_encode($data);
+            // Print the script to send the message to the browser console
+            //echo '<script>console.error("filter_automultitrans: json encoded");</script>';
+        } catch (Exception $e) {
+            $message = new \core\message\message();
+            $message->courseid = SITEID;
+            $message->component = 'moodle';
+            $message->name = 'automultilang';
+            $message->notification = 1;
+            $message->userfrom = core_user::get_noreply_user();
+            $message->subject = 'debug message';
+            $message->fullmessage = $e->getMessage() . " automultitrans " .$string;
+            send_message($message);
+            // Print the script to send the message to the browser console
+            echo '<script>console.error("filter_automultitrans: JSON encoding error: ' . addslashes($e->getMessage()) . '");</script>';
+
+            return($transstringinfo);
+
+        }
 
         // Initialize cURL session
         $ch = curl_init();
@@ -92,22 +118,54 @@ class deepltranslate {
         // Check for cURL errors
         if (curl_errno($ch)) {
             echo 'cURL Error: ' . curl_error($ch);
+            // Print the script to send the message to the browser console
+            echo '<script>console.error("filter_automultitrans: cURL Error: ' . addslashes(curl_error($ch)) . '");</script>';
+
+        } else {
+            // Check for HTTP status codes
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            if ($httpCode >= 400) {
+                // Print the script to send the message to the browser console
+                echo '<script>console.error("filter_automultitrans: HTTP Error send by DeepL: ' . $httpCode . '");</script>';
+            }
         }
+
+
 
         // Close cURL session
         curl_close($ch);
 
-        // Decode the JSON response
-        $translatedData = json_decode($response, true);
+        try {
+            // Decode the JSON response
+            $translatedData = json_decode($response, true);
+        } catch (Exception $e) {
+            echo 'filter_automultitrans: JSON decoding error: ' . $e->getMessage();
+            $message = new \core\message\message();
+            $message->courseid = SITEID;
+            $message->component = 'moodle';
+            $message->name = 'automultilang';
+            $message->notification = 1;
+            $message->userfrom = core_user::get_noreply_user();
+            $message->subject = 'debug message';
+            $message->fullmessage = $e->getMessage() . " automultitrans " .$string;
+            send_message($message);
+            // Print the script to send the message to the browser console
+            echo '<script>console.error("filter_automultitrans: JSON decoding error: ' . addslashes($e->getMessage()) . '");</script>';
+
+            return($transstringinfo);
+        }
 
         // Output the translated text
         if (isset($translatedData['translations'][0]['text'])) {
             //debugecho " ------ remove the . in json file --------";
             $newstring = $translatedData['translations'][0]['text'];
             $newstring = trim($newstring, ".");
-            return($newstring);
+            // not a good solution if($newstring != $string) {} - translates again and again
+            $transstringinfo->translationdone = true;
+            $transstringinfo->transstring = $newstring;
+            return($transstringinfo);
         } else {
-            return($string);
+            return($transstringinfo);
         }
     }
     

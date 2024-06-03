@@ -4,6 +4,7 @@ To Install it:
 To Use it:
     - Add an Translation API Key
     - Test it (by changing your language).
+    - Use it after h5p_filter
 
 How it works:
     - gets the content
