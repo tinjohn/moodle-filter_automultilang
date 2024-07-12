@@ -19,14 +19,15 @@
  * Strings for component 'filter_automultilang', language 'en', branch 'MOODLE_20_STABLE'
  *
  * @package   filter_automultilang
- * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
- * @copyright  2023 Tina John <johnt.22.tijo@gmail.com>
+ * @copyright 2023 Tina John <johnt.22.tijo@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 $string['filtername'] = 'Automulti-language content';
 $string['deeplapikey'] = 'Deepl API key';
 $string['deeplapikey_desc'] = 'Deepl API key is required to use the plugin. Get it for free from https://www.deepl.com/docs-api/start';
+$string['deeplapiurl'] = 'Deepl API URL';
+$string['deeplapiurl_desc'] = 'Deepl API URL is required to use the plugin.';
 $string['someconfigs'] = 'A dummy config';
 $string['someconfigs_desc'] = 'A dummy config.';
 $string['privacy:metadata'] = 'The Automulti-language content plugin does not store any personal data.';

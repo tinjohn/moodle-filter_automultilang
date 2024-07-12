@@ -17,7 +17,7 @@
 /**
  * 
  * @package    filter_automultilang
- * @copyright  2023 Tina John <tina.john@th-luebeck.de>
+ * @copyright  2024 Tina John <tina.john@th-luebeck.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace filter_automultilang;
@@ -35,17 +35,34 @@ class deepltranslate {
         $settings = get_config('filter_automultilang');
         // tinjohnartprep var_dump($settings);
         
-            // Check if the API key setting exists - not working
-            //$apiKey = get_config('filter_automultilang','deeplapikey');
+            // Check if the API key setting exists
             $apiKey =  $CFG->filter_automultilang_deeplapikey;
             if($apiKey) {
                 // Use the API key 
                 //debugecho "API Key: " . $apiKey;
                 return $apiKey;
             } else {
+                echo '<script>console.log("filter_automultitrans: DEEPL API KEY not set yet");</script>';
                 return "not set yet";
             }
         
+    }
+    public static function getAPIurl () {
+        global $CFG;
+
+        // Ensure the configurations for this site are set
+        $settings = get_config('filter_automultilang');
+        // tinjohnartprep var_dump($settings);
+            // Check if the API key setting exists
+            $apiUrl = $CFG->filter_automultilang_deeplapiUrl;
+            if($apiUrl) {
+                // Use the API URL 
+                //debugecho echo '<script>console.log("filter_automultitrans: use API URL: ' . $apiUrl . '");</script>';
+                return $apiUrl;
+            } else {
+                echo '<script>console.log("filter_automultitrans: DEEPL API URL not set yet");</script>';
+                return "not set yet";
+            }        
     }
 
     // USED (debugoff) translation with Deepl of flatten lang text array as json string
@@ -64,10 +81,17 @@ class deepltranslate {
        
         //$authKey = 'for-debugging-off';
         if($authKey == 'for-debugging-off' || $authKey == 'not set yet') {
-            echo "<h1 style='color: red;'> DeepL API key is: " . $authKey . "</h1>";
+            //debug echo "<h1 style='color: red;'> DeepL API key is: " . $authKey . "</h1>";
             return $transstringinfo;
         }
-        $apiUrl = 'https://api-free.deepl.com/v2/translate';
+
+        $apiUrl = self::getAPIurl();
+        //$apiUrl = 'https://api-free.deepl.com/v2/translate';
+
+        if($apiUrl == 'for-debugging-off' || $apiUrl == 'not set yet') {
+           //debug echo "<h1 style='color: red;'> DeepL API URL is: " . $apiUrl . "</h1>";
+            return $transstringinfo;
+        }
 
         // Data to be translated and target language
         $data = array(
@@ -115,17 +139,22 @@ class deepltranslate {
         $response = curl_exec($ch);
 
         // Check for cURL errors
+
         if (curl_errno($ch)) {
-            echo 'cURL Error: ' . curl_error($ch);
+            $error_message = curl_error($ch);
+            echo 'Debug: cURL Error: ' . $error_message;
+        }
+        if (curl_errno($ch)) {
+            //debug echo 'cURL Error check API key and API url: ' . curl_error($ch);
             // Print the script to send the message to the browser console
-            echo '<script>console.error("filter_automultitrans: cURL Error: ' . addslashes(curl_error($ch)) . '");</script>';
+            echo '<script>console.error("filter_automultitrans: cURL Error check API key and API url: ' . addslashes(curl_error($ch)) . '");</script>';
 
         } else {
             // Check for HTTP status codes
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             if ($httpCode >= 400) {
                 // Print the script to send the message to the browser console
-                echo '<script>console.error("filter_automultitrans: HTTP Error send by DeepL: ' . $httpCode . '");</script>';
+                echo '<script>console.error("filter_automultitrans: HTTP Error send by DeepL: ' . $httpCode . ' (404 - check API URL)");</script>';
             }
         }
 

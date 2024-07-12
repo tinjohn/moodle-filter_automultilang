@@ -27,10 +27,9 @@ use filter_automultilang\deepltranslate;
 use filter_automultilang\writetranslationtodb;
 
 /**
- * Implementation of the Moodle filter API for the Multi-lang filter.
+ * Implementation of the Moodle filter API for the Automulti-lang filter.
  *
- * @copyright  Gaetan Frenoy <gaetan@frenoy.net>
- * @copyright  2004 onwards Eloy Lafuente (stronk7) {@link http://stronk7.com}
+ * @copyright  2023 Tina John <tina.john@th-luebeck.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class filter_automultilang extends moodle_text_filter {
@@ -110,7 +109,7 @@ class filter_automultilang extends moodle_text_filter {
             // Replace base64 images with placeholders
             list($modified_text, $base64_images) = self::replace_images_with_placeholder($text);
             $text = $modified_text;
-            //tinjohnartprep  echo " automultilang- no record found - try to translate onthefly:-".$text."-";
+            //tinjohnartprep echo " automultilang- no record found - try to translate onthefly:-".$text."-";
             $translationinfo = deepltranslate::transWithDeeplHTML($text, $lang);
             if($translationinfo->translationdone) {
             // Typo aber WANN SOLL DAS PASSIERT SEIN????
