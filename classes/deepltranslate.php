@@ -49,8 +49,7 @@ class deepltranslate {
     }
 
     // USED (debugoff) translation with Deepl of flatten lang text array as json string
-    // transWithDeeplXML ist der falsche Name sollte transWithDeeplHTML sein
-    public static function transWithDeeplXML ($string, $trglang) {
+    public static function transWithDeeplHTML ($string, $trglang) {
         // https://www.deepl.com/docs-api/translate-text/
         $transstringinfo = new \stdClass();
         $transstringinfo->string = $string;

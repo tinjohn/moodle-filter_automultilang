@@ -111,7 +111,7 @@ class filter_automultilang extends moodle_text_filter {
             list($modified_text, $base64_images) = self::replace_images_with_placeholder($text);
             $text = $modified_text;
             //tinjohnartprep  echo " automultilang- no record found - try to translate onthefly:-".$text."-";
-            $translationinfo = deepltranslate::transWithDeeplXML($text, $lang);
+            $translationinfo = deepltranslate::transWithDeeplHTML($text, $lang);
             if($translationinfo->translationdone) {
             // Typo aber WANN SOLL DAS PASSIERT SEIN????
             // if($transstringinfo->translationdone) {
