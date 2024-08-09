@@ -91,15 +91,17 @@ class filter_automultilang extends moodle_text_filter {
         }
         $result = $text . "automultilangfilter";
         $lang = current_language();
-        //echo "current_language" . $lang . " ";
-        if($lang == "de" || $lang == "DE") {
+        $notranslang = get_config('local_h5ptranslate','notranslationforlang');
+        if($lang == $notranslang) {
             return $text;
         }
+
+
         $texthash = self::get_contenthash($text);
         //debugecho " - texthash " . $texthash;
-                
-   
-       // get translated text from db
+        $translation = null;
+        
+        // get translated text from db
         $newRecord = FALSE;
         $sql = "SELECT transcontent FROM {filter_automultilang} WHERE texthash = ? AND lang = ?";
         $filterRecord = $DB->get_record_sql($sql, [$texthash, $lang]);
@@ -108,9 +110,9 @@ class filter_automultilang extends moodle_text_filter {
             // clean up base64 images - will throw 413 Error 
             // Replace base64 images with placeholders
             list($modified_text, $base64_images) = self::replace_images_with_placeholder($text);
-            $text = $modified_text;
+            //$text = $modified_text;
             //tinjohnartprep echo " automultilang- no record found - try to translate onthefly:-".$text."-";
-            $translationinfo = deepltranslate::transWithDeeplHTML($text, $lang);
+            $translationinfo = deepltranslate::transWithDeeplHTML($modified_text, $lang);
             if($translationinfo->translationdone) {
             // Typo aber WANN SOLL DAS PASSIERT SEIN????
             // if($transstringinfo->translationdone) {
@@ -126,7 +128,8 @@ class filter_automultilang extends moodle_text_filter {
                 }    
             } else {
                 // Print the script to send the message to the browser console
-                echo '<script>console.error("filter_automultitrans: NO translation returned by DeepL - Not written to db");</script>';
+                //echo '<script>console.error("filter_automultitrans: NO translation returned by DeepL - Not written to db");</script>';
+                debugging("filter_automultitrans: NO translation returned by DeepL - check API KEy and URL in settings - Not written to db", DEBUG_NORMAL);
             }
         }
         if ($filterRecord || $newRecord) {
