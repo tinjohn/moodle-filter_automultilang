@@ -42,7 +42,8 @@ class deepltranslate {
                 //debugecho "API Key: " . $apiKey;
                 return $apiKey;
             } else {
-                echo '<script>console.log("filter_automultitrans: DEEPL API KEY not set yet");</script>';
+                //echo '<script>console.log("filter_automultitrans: DEEPL API KEY not set yet");</script>';
+                debugging('filter_automultitrans: DEEPL API KEY not set yet.', DEBUG_DEVELOPER);
                 return "not set yet";
             }
         
@@ -60,7 +61,7 @@ class deepltranslate {
                 //debugecho echo '<script>console.log("filter_automultitrans: use API URL: ' . $apiUrl . '");</script>';
                 return $apiUrl;
             } else {
-                echo '<script>console.log("filter_automultitrans: DEEPL API URL not set yet");</script>';
+                //echo '<script>console.log("filter_automultitrans: DEEPL API URL not set yet");</script>';
                 return "not set yet";
             }        
     }
@@ -116,8 +117,8 @@ class deepltranslate {
             $message->fullmessage = $e->getMessage() . " automultitrans " .$string;
             send_message($message);
             // Print the script to send the message to the browser console
-            echo '<script>console.error("filter_automultitrans: JSON encoding error: ' . addslashes($e->getMessage()) . '");</script>';
-
+            //echo '<script>console.error("filter_automultitrans: JSON encoding error: ' . addslashes($e->getMessage()) . '");</script>';
+            debugging('filter_automultitrans: JSON encoding error.', DEBUG_DEVELOPER);
             return($transstringinfo);
 
         }
@@ -142,19 +143,21 @@ class deepltranslate {
 
         if (curl_errno($ch)) {
             $error_message = curl_error($ch);
-            echo 'Debug: cURL Error: ' . $error_message;
+            //echo 'Debug: cURL Error: ' . $error_message;
         }
         if (curl_errno($ch)) {
             //debug echo 'cURL Error check API key and API url: ' . curl_error($ch);
             // Print the script to send the message to the browser console
-            echo '<script>console.error("filter_automultitrans: cURL Error check API key and API url: ' . addslashes(curl_error($ch)) . '");</script>';
-
+            //echo '<script>console.error("filter_automultitrans: cURL Error check API key and API url: ' . addslashes(curl_error($ch)) . '");</script>';
+            debugging('filter_automultitrans: cURL Error check API key and API url.', DEBUG_NORMAL);
         } else {
             // Check for HTTP status codes
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             if ($httpCode >= 400) {
                 // Print the script to send the message to the browser console
-                echo '<script>console.error("filter_automultitrans: HTTP Error send by DeepL: ' . $httpCode . ' (404 - check API URL)");</script>';
+                //echo '<script>console.error("filter_automultitrans: HTTP Error send by DeepL: ' . $httpCode . ' (404 - check API URL)");</script>';
+                debugging('filter_automultitrans: HTTP Error send by DeepL', DEBUG_DEVELOPER);
+
             }
         }
 
@@ -167,7 +170,7 @@ class deepltranslate {
             // Decode the JSON response
             $translatedData = json_decode($response, true);
         } catch (Exception $e) {
-            echo 'filter_automultitrans: JSON decoding error: ' . $e->getMessage();
+            //echo 'filter_automultitrans: JSON decoding error: ' . $e->getMessage();
             $message = new \core\message\message();
             $message->courseid = SITEID;
             $message->component = 'moodle';
@@ -178,7 +181,7 @@ class deepltranslate {
             $message->fullmessage = $e->getMessage() . " automultitrans " .$string;
             send_message($message);
             // Print the script to send the message to the browser console
-            echo '<script>console.error("filter_automultitrans: JSON decoding error: ' . addslashes($e->getMessage()) . '");</script>';
+            //echo '<script>console.error("filter_automultitrans: JSON decoding error: ' . addslashes($e->getMessage()) . '");</script>';
 
             return($transstringinfo);
         }
