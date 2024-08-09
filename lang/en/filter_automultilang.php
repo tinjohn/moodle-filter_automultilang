@@ -30,4 +30,6 @@ $string['deeplapiurl'] = 'Deepl API URL';
 $string['deeplapiurl_desc'] = 'Deepl API URL is required to use the plugin.';
 $string['someconfigs'] = 'A dummy config';
 $string['someconfigs_desc'] = 'A dummy config.';
+$string['notranslationforlang'] = 'Original Language';
+$string['notranslationforlang_desc'] = 'For the language entered, no translation is required. Commonly used for the language in which the original content was created. Saves energy consumption and API tokens.';
 $string['privacy:metadata'] = 'The Automulti-language content plugin does not store any personal data.';
